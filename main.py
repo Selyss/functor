@@ -27,7 +27,7 @@ for line in lines:
         transformed_point = transform_point(original_point, a, k, p, q)
         transformed_points.append(transformed_point)
     except ValueError:
-        print(f"Skipping invalid line: {line}")
+        print(f"Skipping invalid point: {line}")
 
 for original, transformed in zip(
     [str(p) for p in transformed_points], transformed_points
