@@ -1,62 +1,52 @@
-from typing_extensions import Tuple, Type
-import matplotlib.pyplot as plt
 from colorama import Fore, Style
-import os
 
+def read_coordinates_from_file():
+        with open("input.txt", 'r') as file:
+            lines = file.readlines()
+        return [tuple(map(float, line.strip().strip("()").split(","))) for line in lines]
 
-def save_transformed_points_plot(original_points, transformed_points):
-    original_x, original_y = zip(*original_points)
-    transformed_x, transformed_y = zip(*transformed_points)
+def stretch_compress(points, factor):
+    return [(x * factor, y * factor) for x, y in points]
 
-    plt.figure(figsize=(8, 4))
-    plt.scatter(original_x, original_y, c='red', label='Original Points')
-    plt.scatter(transformed_x, transformed_y, c='green', label='Transformed Points')
-    # plt.plot(original_x, original_y, 'r--', label='Original')
-    # plt.plot(transformed_x, transformed_y, 'g--', label='Transformed')
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.title('Original and Transformed Points with Connecting Lines')
-    plt.legend()
-    plt.grid(True)
+def translate(points, dx, dy):
+    return [(x + dx, y + dy) for x, y in points]
 
-    output_image_path = os.path.join("transformed_points.png")
-    plt.savefig(output_image_path)
+def reflect_x_axis(points):
+    return [(-x, y) for x, y in points]
 
+def reflect_y_axis(points):
+    return [(x, -y) for x, y in points]
 
-def transform_point(point: tuple[int, int], a, k, p, q):
-    x = point[0]
-    y = point[1]
-    new_x = x
-    new_y = a * (k * (x - p)) + q
-    return new_x, new_y
+def print_coordinates_with_arrows(original, transformed):
+    for o, t in zip(original, transformed):
+        print(f"{Fore.RED}{o}{Style.RESET_ALL}{Fore.WHITE + Style.BRIGHT} -> {Style.RESET_ALL}{Fore.GREEN}{t}{Style.RESET_ALL}")
 
+def main():
+    original_points = read_coordinates_from_file()
 
-a = int(input("Enter the value of 'a': "))
-k = int(input("Enter the value of 'k': "))
-p = int(input("Enter the value of 'p': "))
-q = int(input("Enter the value of 'q': "))
+    if not original_points:
+        return
 
-with open("input.txt", "r") as f:
-    lines = f.readlines()
+    factor = float(input("Enter the stretch/compress factor (default: 1.0): ") or 1.0)
+    dx = float(input("Enter the translation in the x-direction (default: 0.0): ") or 0.0)
+    dy = float(input("Enter the translation in the y-direction (default: 0.0): ") or 0.0)
+    ref = input("Reflect in X or Y or None (default: None): ")
+    
+    points = original_points
+    
+        
+    if ref.lower() == "x":
+        points = reflect_x_axis(points)
 
-transformed_points = []
-original_points = []
+    elif ref.lower() == "y":
+        points = reflect_y_axis(points)
 
-for line in lines:
-    try:
-        x, y = map(int, line.strip().strip("()").split(","))
-        original_point = (x, y)
-        transformed_point = transform_point(original_point, a, k, p, q)
-        original_points.append(original_point)
-        transformed_points.append(transformed_point)
-    except ValueError:
-        print(f"Skipping invalid point: {line}")
+    points = stretch_compress(points, factor)
+    points = translate(points, dx, dy)
 
-for original, transformed in zip(
-    [str(p) for p in original_points], transformed_points
-):
-    arrow = f"{Fore.WHITE + Style.BRIGHT} -> {Style.RESET_ALL}"
-    transformed_str = f"{Fore.GREEN}{transformed}"
-    print(f"{Fore.RED}{original}{arrow}{transformed_str}{Style.RESET_ALL}")
+    print("\nTransformed Points:")
+    print_coordinates_with_arrows(original_points, points)
 
-save_transformed_points_plot(original_points, transformed_points)
+if __name__ == "__main__":
+    main()
+
